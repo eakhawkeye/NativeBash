@@ -1,5 +1,8 @@
 #!/bin/bash
 #
+# By: EakHawkEye
+# All I ask is you give credit where it is due. Otherwise, enjoy!
+#
 # Test Connection Suite
 # -------------------------------------
 #
