@@ -74,8 +74,8 @@ function usage()
 	echo -e "\t    banner         Port Banner Grabber  | args: -h -p [-r -t -n]"
 	echo -e "\t     range         Host Range Expansion | args: -h"
 	echo -e "\n      Arguments:"
-	echo -e "\t        -h         host/host range                   | -h 192.168.2-3.0"
-	echo -e "\t        -p         port/port range                   | -p 1-1024"
+	echo -e "\t        -h         host/host range (dash or comma)   | -h 192.168.2-3.0"
+	echo -e "\t        -p         port/port range (dash or comma)   | -p 1-1024"
 	echo -e "\t        -r         protocol tcp (default) or udp     | -r tcp"
 	echo -e "\t        -t         connection timeout (seconds)      | -t 1"
 	echo -e "\t        -l         limit connections for stress test | -l 3000"
@@ -403,9 +403,9 @@ done
 
 # [ACTION] - Now run the request
 case "${action}" in
-	  "scan" ) process_scan ary_hosts[@] ary_ports[@] "${protocol}" ${connect_timeout} ${g_banner} ${no_ping}; echo ;;
-	"stress" ) process_stress_port ary_hosts[@] ary_ports[@] "${protocol}" ${test_limit} ${connect_timeout} ${micro_sleep} ${no_ping}; echo ;;
-	"banner" ) process_banners ary_hosts[@] ary_ports[@] "${protocol}" ${connect_timeout} ${no_ping}; echo ;;
+	  "scan" ) process_scan ary_hosts[@] ary_ports[@] "${protocol}" ${connect_timeout} ${g_banner} ${no_ping} ;;
+	"stress" ) process_stress_port ary_hosts[@] ary_ports[@] "${protocol}" ${test_limit} ${connect_timeout} ${micro_sleep} ${no_ping} ;;
+	"banner" ) process_banners ary_hosts[@] ary_ports[@] "${protocol}" ${connect_timeout} ${no_ping} ;;
 	 "range" ) echo -e "${ary_hosts[@]}" ;;
 	       * ) echo "[-] Impossible" ;;
 esac
