@@ -43,13 +43,16 @@ g_banner=false
 no_ping=false
 action=
 
-cmd_bash="/usr/bin/bash"
-cmd_cat="/usr/bin/cat"
-cmd_cut="/usr/bin/cut"
-cmd_egrep="/usr/bin/egrep"
-cmd_ping="/usr/bin/ping"
-cmd_usleep="/usr/bin/usleep"
-cmd_timeout="/usr/bin/timeout"
+# Check for default directory
+if [ -a "/bin/egrep" ]; then wd="/bin"; else wd="/usr/bin"; fi
+
+cmd_bash="${wd}/bash"
+cmd_cat="${wd}/cat"
+cmd_cut="${wd}/cut"
+cmd_egrep="${wd}/egrep"
+cmd_ping="${wd}/ping"
+cmd_usleep="${wd}/usleep"
+cmd_timeout="${wd}/timeout"
 
 
 
