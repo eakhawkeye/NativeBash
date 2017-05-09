@@ -43,16 +43,16 @@ g_banner=false
 no_ping=false
 action=
 
-# Check for default directory
-if [ -a "/bin/egrep" ]; then wd="/bin"; else wd="/usr/bin"; fi
+## Check for default directory
+#if [ -a "/bin/egrep" ]; then wd="/bin"; else wd="/usr/bin"; fi
 
-cmd_bash="${wd}/bash"
-cmd_cat="${wd}/cat"
-cmd_cut="${wd}/cut"
-cmd_egrep="${wd}/egrep"
-cmd_ping="${wd}/ping"
-cmd_usleep="${wd}/usleep"
-cmd_timeout="${wd}/timeout"
+#cmd_bash="${wd}/bash"
+#cmd_cat="${wd}/cat"
+#cmd_egrep="${wd}/egrep"
+#cmd_ping="${wd}/ping"
+#cmd_usleep="${wd}/usleep"
+#cmd_cut="${wd}/cut"
+#cmd_timeout="${wd}/timeout"
 
 
 
@@ -97,7 +97,7 @@ function ping_host()
 	local connect_timeout=${2}
 
 	# Ping once, quietly.
-	${cmd_ping} -c 1 -W ${connect_timeout} -q ${target_host} > /dev/null 2>&1
+	ping -c 1 -W ${connect_timeout} -q ${target_host} > /dev/null 2>&1
 
 	# Rerturn command response
 	echo $?
@@ -112,7 +112,7 @@ function ping_port()
 	local connect_timeout=${4}
 
 	# Controlled with a timeout, attempt to connect to the address:port
-	${cmd_timeout} ${connect_timeout} ${cmd_bash} -c "exec > /dev/${protocol}/${target_host}/${target_port}" > /dev/null 2>&1
+	timeout ${connect_timeout} bash -c "exec > /dev/${protocol}/${target_host}/${target_port}" > /dev/null 2>&1
 
 	# Return command response code
 	echo $?
@@ -126,7 +126,7 @@ function lookup_port()
 	local f_services="/etc/services"
 
 	# Return the short name of the default service
-	${cmd_egrep} " ${target_port}/${protocol}" "${f_services}" | head -n1 | ${cmd_cut} -d ' ' -f 1
+	egrep " ${target_port}/${protocol}" "${f_services}" | head -n1 | cut -d ' ' -f 1
 }
 
 function get_banner()
@@ -144,7 +144,7 @@ function get_banner()
 	echo -e "HEAD / HTTP/1.1\r\n\r\n" >&3
 
 	# Return port response
-	${cmd_timeout} ${connect_timeout} ${cmd_bash} -c ${cmd_cat} <&3 2>/dev/null
+	timeout ${connect_timeout} bash -c ${cmd_cat} <&3 2>/dev/null
 }
 
 function input_parser()
@@ -257,7 +257,7 @@ function process_scan()
 					# If requested, attempt to get a banner from the port and display a single, important line only
 					if ${g_banner}; then
 						banner=""
-						banner=$(get_banner ${target_host} ${target_port} ${protocol} ${connect_timeout} | ${cmd_egrep} -i 'server|welcome|[0-9]\.[0-9]' | grep -v HTTP/1)
+						banner=$(get_banner ${target_host} ${target_port} ${protocol} ${connect_timeout} | egrep -i 'server|welcome|[0-9]\.[0-9]' | grep -v HTTP/1)
 					fi
 					# No matter what, print a new line
 					printf "%15s\n" "  ${banner}"
@@ -361,7 +361,7 @@ function process_stress_port()
 
 				# [USER OUTPUT] Update the output counts in real-time
 				echo -en "Success: ${suc_count} | Fail: ${fail_count} | Timeouts: ${timeout_count}\r"
-				${cmd_usleep} ${u_sleep}
+				usleep ${u_sleep}
 
 			done
 			echo
