@@ -1,6 +1,6 @@
-NativeBash - BashNMap
+NativeBash - BashNetScan
 ===================
-A native bash network mapping tool
+A native bash network scanning tool
  - Host Scanning
  - Port Scanning
  - Port Stress Testing
@@ -31,7 +31,7 @@ Requirements:
 Your linux kernel needs to be compiled with '/dev/tcp' for this to work (which is a standard setup).
 
 ```
-  Usage: bashnmp action -h <target_hosts> -p <target_ports> ..more arguments
+  Usage: bashnscan action -h <target_hosts> -p <target_ports> ..more arguments
 
 	Actions:         Description:
 	      scan         Host & Port Scanner  | args: -h -p [-r -t -b -n]
@@ -55,7 +55,7 @@ Examples
 
 IP/Port Scanner
 ```
--$ bashnmap scan -h 192.168.200.90-100 -p 1-1024 -b
+-$ bnscan scan -h 192.168.200.90-100 -p 1-1024 -b
   Host: 192.168.200.98              (pingable)
             80/http                open  SERVER: EPSON_Linux UPnP/1.0 ...
            139/netbios-ssn         open               
@@ -74,7 +74,7 @@ IP/Port Scanner
 ```      
 Banner Grab
 ```
--$ bashnmap banner -h 192.168.200.90-100 -p 1-1024
+-$ bashnscan banner -h 192.168.200.90-100 -p 1-1024
 Host: 192.168.200.98:80        
 HTTP/1.1 404 Not Found
 CONTENT-LENGTH: 0
@@ -113,7 +113,7 @@ Connection: close
 
 Stress Test
 ```
--$ bashmap -h 192.168.20.99 -p 443
+-$ bnscan -h 192.168.20.99 -p 443
 Host: 192.168.20.99
 Port: 443
 Reqs: 3000
@@ -122,6 +122,6 @@ Success: 2987 | Fail: 4 (timeouts: 9)
 
 Range
 ```
--$ bashnmap range -h 192.168.2.90-100
+-$ bnscan range -h 192.168.2.90-100
 192.168.2.90 192.168.2.91 192.168.2.92 192.168.2.93 192.168.2.94 192.168.2.95 192.168.2.96 192.168.2.97 192.168.2.98 192.168.2.99 192.168.2.100
 ```
