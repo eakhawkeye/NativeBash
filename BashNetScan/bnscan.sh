@@ -278,6 +278,9 @@ function process_scan()
 		done
 		
 	done
+
+	# Clean up output
+	echo "                 "
 }
 
 function process_banners()
