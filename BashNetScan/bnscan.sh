@@ -50,6 +50,7 @@ else
 	f_services="/etc/unicornscan/ports.txt"
 fi
 
+
 ## Check for default directory
 #if [ -a "/bin/egrep" ]; then wd="/bin"; else wd="/usr/bin"; fi
 
@@ -130,7 +131,7 @@ function lookup_port()
 	# Lookup the default port service vi /etc/services
 	local target_port=${1}
 	local protocol=${2}
-	local f_services="/etc/services"
+	local f_services=${3}
 
 	# Return the short name of the default service
 	egrep " ${target_port}/${protocol}" "${f_services}" | head -n1 | cut -d ' ' -f 1
@@ -252,7 +253,7 @@ function process_scan()
 
 			# Lookup the port service and ping the port...
 			echo -en "            ${target_port}\r"
-			lk_port=$( lookup_port ${target_port} ${protocol} )
+			lk_port=$( lookup_port ${target_port} ${protocol} ${f_services} )
 			rtrn=$( ping_port ${target_host} ${target_port} ${protocol} ${connect_timeout} )
 
 			# ...depending on the return, if alive output, or if not move to the next port
