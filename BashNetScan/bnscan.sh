@@ -44,10 +44,10 @@ no_ping=false
 action=
 
 # Assign your port service variable
-if [ -a "/etc/services" ]; then 
-	f_services="/etc/services"
-else 
+if [ -a "/etc/unicornscan/ports.txt" ]; then 
 	f_services="/etc/unicornscan/ports.txt"
+else 	
+	f_services="/etc/services"
 fi
 
 
