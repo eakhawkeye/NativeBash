@@ -144,7 +144,7 @@ function get_banner()
 	echo -e "HEAD / HTTP/1.1\r\n\r\n" >&3
 
 	# Return port response
-	timeout ${connect_timeout} bash -c ${cmd_cat} <&3 2>/dev/null
+	timeout ${connect_timeout} bash -c cat <&3 2>/dev/null
 }
 
 function input_parser()
