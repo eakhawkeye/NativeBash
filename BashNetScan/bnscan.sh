@@ -43,6 +43,13 @@ g_banner=false
 no_ping=false
 action=
 
+# Assign your port service variable
+if [ -a "/etc/services" ]; then 
+	f_services="/etc/services"
+else 
+	f_services="/etc/unicornscan/ports.txt"
+fi
+
 ## Check for default directory
 #if [ -a "/bin/egrep" ]; then wd="/bin"; else wd="/usr/bin"; fi
 
