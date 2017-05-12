@@ -168,17 +168,32 @@ function input_parser()
 	case ${i_type}:${i_data} in
 		ports:*-* ) # Port: Range: n-n
 					IFS=- read start end <<< ${i_data}
+					# Incase the IFS parsing doesn't work...
+					if [ "${start}"=="x" ]; then
+						start=$(cut -d- -f 1 <<< ${i_data})
+						end=$(cut -d- -f 2 <<< ${i_data})
+					fi
+					# Iterate, building the port array
 					for ((port=start; port <= end; port++)); do
 						a_parsed+=( ${port} )
 					done
 					;;
 		  ips:*-* )	#   IP: Range 192.168.2.1-255
 					IFS=. read -ra a_temp <<< ${i_data}
+					# Incase the IFS parsing doesn't work...
+					if [ "${a_temp[@]}x"=="x" ]; then
+						for i in {1..4..1}; do a_temp+=( $(cut -d. -f ${i} <<< ${myip}) ); done
+					fi
 					# Iterate through the elements of IPv4 stored in ${a_temp[@]}
 					for num in {0..3}; do
 						# When you find the range, split it, expand it based on position, and store in an array
 						if [[ "${a_temp[${num}]}" == *[0-9]"-"[0-9]* ]]; then
 							IFS=- read start end <<< ${a_temp[${num}]}
+							# Incase the IFS parsing doesn't work...
+							if [ "${start}x"=="x" ]; then
+								start=$(cut -d- -f 1 <<< ${i_data})
+								end=$(cut -d- -f 2 <<< ${i_data})
+							fi
 							case ${num} in
 							#	0 ) declare -a 'a_parsed=( {'"${start}..${end}"'}.{'"0..255"'}.{'"0..255"'}.{'"1..254"'} )' ;;
 								0 ) echo "You're crazy to expand the first octet. Uncomment above this line if you're so daring." ;;
@@ -243,6 +258,7 @@ function process_scan()
 					printf "%-34s" "  Host: ${target_host}"; 
 					printf "${REDCOLOR}%14s${ENDCOLOR}\n" "(non-pingable)"
 				else
+					echo -en "                                         \r"
 					continue
 				fi
 				;;
@@ -280,7 +296,7 @@ function process_scan()
 	done
 
 	# Clean up output
-	echo "                 "
+	echo "                         "
 }
 
 function process_banners()
@@ -324,6 +340,9 @@ function process_banners()
 		fi
 
 	done
+
+	# Text Cleanup
+	echo -en "                                 \r"
 }
 
 function process_stress_port()
