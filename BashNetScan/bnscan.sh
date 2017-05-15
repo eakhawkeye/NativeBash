@@ -163,37 +163,52 @@ function input_parser()
 	local a_parsed=()
 	local a_temp=()
 	local s_temp=""
+	local parse_method="ifs"
 
 	# Determine the datatype and split method
 	case ${i_type}:${i_data} in
 		ports:*-* ) # Port: Range: n-n
 					IFS=- read start end <<< ${i_data}
+
 					# Incase the IFS parsing doesn't work...
-					if [ "${start}"=="x" ]; then
+					if [ "${end}x" == "x" ]; then
 						start=$(cut -d- -f 1 <<< ${i_data})
 						end=$(cut -d- -f 2 <<< ${i_data})
 					fi
+
 					# Iterate, building the port array
 					for ((port=start; port <= end; port++)); do
 						a_parsed+=( ${port} )
 					done
 					;;
+
 		  ips:*-* )	#   IP: Range 192.168.2.1-255
 					IFS=. read -ra a_temp <<< ${i_data}
+
 					# Incase the IFS parsing doesn't work...
-					if [ "${a_temp[@]}x"=="x" ]; then
-						for i in {1..4..1}; do a_temp+=( $(cut -d. -f ${i} <<< ${myip}) ); done
+					if [ "${a_temp[2]}x" == "x" ]; then
+						a_temp=()
+						for i in {1..4..1}; do a_temp+=( $(cut -d. -f ${i} <<< ${i_data}) ); done
+						parse_method="alt"
 					fi
+					echo "${a_temp[@]}"
+
 					# Iterate through the elements of IPv4 stored in ${a_temp[@]}
 					for num in {0..3}; do
+
 						# When you find the range, split it, expand it based on position, and store in an array
 						if [[ "${a_temp[${num}]}" == *[0-9]"-"[0-9]* ]]; then
-							IFS=- read start end <<< ${a_temp[${num}]}
-							# Incase the IFS parsing doesn't work...
-							if [ "${start}x"=="x" ]; then
-								start=$(cut -d- -f 1 <<< ${i_data})
-								end=$(cut -d- -f 2 <<< ${i_data})
-							fi
+							
+							# Determine the parsing method (in case IFS isn't working)
+							case "${parse_method}" in 
+								"ifs" ) IFS=- read start end <<< ${a_temp[${num}]}
+										;;
+								"alt" ) start=$(cut -d- -f 1 <<< ${i_data} | cut -d. -f $((num+1)))
+										end=$(cut -d- -f 2 <<< ${i_data} | cut -d. -f 1)
+										;;
+							esac
+
+							# Determine the octet to expand and do it
 							case ${num} in
 							#	0 ) declare -a 'a_parsed=( {'"${start}..${end}"'}.{'"0..255"'}.{'"0..255"'}.{'"1..254"'} )' ;;
 								0 ) echo "You're crazy to expand the first octet. Uncomment above this line if you're so daring." ;;
@@ -201,17 +216,23 @@ function input_parser()
 								2 ) declare -a 'a_parsed=( '"${s_temp}"'{'"${start}..${end}"'}.{'"1..254"'} )' ;;
 								3 ) declare -a 'a_parsed=( '"${s_temp}"'{'"${start}..${end}"'} )' ;;
 							esac
+
 							break
 						else
+
 							# Otherwise add the values as the IP range prefix
 							s_temp+="${a_temp[${num}]}."
+
 						fi
+
 					done
 					;;
+
 		      *,* ) # Port: Comma Separated: n,n,n,n
 					#   IP: Comma Separated: 192.168.1.10,192.168.2.12
 					IFS=, read -ra a_parsed <<< ${i_data}
 					;;
+
 		        * )	# Port: Single Entry: n
 					#   IP: Single Entry: 192.168.1.10
 					a_parsed+=( ${i_data} )
