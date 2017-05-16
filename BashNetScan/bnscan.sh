@@ -191,7 +191,6 @@ function input_parser()
 						for i in {1..4..1}; do a_temp+=( $(cut -d. -f ${i} <<< ${i_data}) ); done
 						parse_method="alt"
 					fi
-					echo "${a_temp[@]}"
 
 					# Iterate through the elements of IPv4 stored in ${a_temp[@]}
 					for num in {0..3}; do
