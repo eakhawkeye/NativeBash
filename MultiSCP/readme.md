@@ -15,6 +15,6 @@ Example
 -------------
 ```
 -$ multiscp.sh auto-fix.sh hosts/impacted-hosts.lst
-  Transfering mikes-broker-bouncer.sh to hosts/full_prod1-brokers.native hosts;
+  Transfering auto-fix.sh to hosts/impacted-hosts.lst hosts;
    Waiting on copies: complete
 ```
