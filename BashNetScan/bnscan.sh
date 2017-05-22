@@ -3,7 +3,7 @@
 # By: EakHawkEye
 # All I ask is you give credit where it is due. Otherwise, enjoy!
 #
-# Test Connection Suite
+# Bash Network Scanner
 # -------------------------------------
 #
 # ### One Liners ###
@@ -25,7 +25,7 @@
 #
 #
 # --- Credits ---
-# TCP Connect & Port Parse: http://www.catonmat.net/blog/tcp-port-scanner-in-bash/
+# TCP Connect & IFS Port Parse Method: http://www.catonmat.net/blog/tcp-port-scanner-in-bash/
 # Read/Write TCP: http://www.linuxjournal.com/content/more-using-bashs-built-devtcp-file-tcpip
 # Declare Brace Expansion: http://wiki.bash-hackers.org/syntax/expansion/brace
 #
@@ -49,18 +49,6 @@ if [ -a "/etc/unicornscan/ports.txt" ]; then
 else 	
 	f_services="/etc/services"
 fi
-
-
-## Check for default directory
-#if [ -a "/bin/egrep" ]; then wd="/bin"; else wd="/usr/bin"; fi
-
-#cmd_bash="${wd}/bash"
-#cmd_cat="${wd}/cat"
-#cmd_egrep="${wd}/egrep"
-#cmd_ping="${wd}/ping"
-#cmd_usleep="${wd}/usleep"
-#cmd_cut="${wd}/cut"
-#cmd_timeout="${wd}/timeout"
 
 
 
@@ -426,9 +414,7 @@ function process_stress_port()
 #########
 # Logic #
 #########
-#if ! [ $# -eq 2 ]; then show_help; exit 2; fi
-#stress_port $@ ${protocol} ${test_limit} ${connect_timeout} ${micro_sleep}
-#input_parser "ips" "${1}"
+# Verify arguments exist
 if [[ $# -lt 3 ]]; then usage; exit 2; fi
 
 # [INPUT PARSE] - Action Requested
@@ -440,7 +426,6 @@ case "${1}" in
 	       * ) echo "[-] Action: ${1} unsupported."; usage; exit 1;;
 esac
 shift
-
 
 # [INPUT PARSE] - Arguments
 while [ "${1}" ]; do

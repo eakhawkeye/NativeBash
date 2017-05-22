@@ -1,10 +1,10 @@
 NativeBash - BashNetScan
 ===================
 A native bash network scanning tool
- - Host Scanning
- - Port Scanning
- - Port Stress Testing
- - Banner Grabbing
+ - Host Scan
+ - Port Scan
+ - Port Stress Test
+ - Banner Grab
 
 
 
@@ -117,7 +117,7 @@ Stress Test
 Host: 192.168.20.99
 Port: 443
 Reqs: 3000
-Success: 2987 | Fail: 4 (timeouts: 9)
+Success: 2987 | Fail: 4 | Timeouts: 9
 ```
 
 Range
