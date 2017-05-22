@@ -21,7 +21,7 @@
 #
 # Lookup Port Service
 # function port_lookup(){ local target_port=${1}; local protocol=${2}; grep " ${target_port}/${protocol}" /etc/services | cut -d ' ' -f 1; }
-# -$ lookup_port 22 tcp
+# -$ port_lookup 22 tcp
 #
 #
 # --- Credits ---
