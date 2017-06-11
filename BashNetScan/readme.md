@@ -34,10 +34,10 @@ Your linux kernel needs to be compiled with '/dev/tcp' for this to work (which i
   Usage: bashnscan action (-h <target_hosts>|-f <target_host_file>) -p <target_ports> ..more arguments
 
 	Actions:         Description:
-	      scan         Host & Port Scanner  | args: -h -p [-r -t -b -n]
-	    stress         Port Stress Tester   | args: -h -p [-r -t -l -u -n]
-	    banner         Port Banner Grabber  | args: -h -p [-r -t -n]
-	     range         Host Range Expansion | args: -h
+	      scan         Host & Port Scanner  | args: (-h|-f) -p [-r -t -b -n]
+	    stress         Port Stress Tester   | args: (-h|-f) -p [-r -t -l -u -n]
+	    banner         Port Banner Grabber  | args: (-h|-f) -p [-r -t -n]
+	     range         Host Range Expansion | args:  -h
 
       Arguments:
 	        -h         host/host range (dash or comma)   | -h 192.168.10-11.0
