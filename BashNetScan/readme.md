@@ -31,7 +31,7 @@ Requirements:
 Your linux kernel needs to be compiled with '/dev/tcp' for this to work (which is a standard setup).
 
 ```
-  Usage: bashnscan action -h <target_hosts> -p <target_ports> ..more arguments
+  Usage: bashnscan action (-h <target_hosts>|-f <target_host_file>) -p <target_ports> ..more arguments
 
 	Actions:         Description:
 	      scan         Host & Port Scanner  | args: -h -p [-r -t -b -n]
@@ -41,6 +41,7 @@ Your linux kernel needs to be compiled with '/dev/tcp' for this to work (which i
 
       Arguments:
 	        -h         host/host range (dash or comma)   | -h 192.168.10-11.0
+		-f         host file line separated          | -f hostlist.txt
 	        -p         port/port range (dash or comma)   | -p 1-1024
 	        -r         protocol tcp (default) or udp     | -r tcp
 	        -t         connection timeout (seconds)      | -t 1
