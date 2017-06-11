@@ -41,7 +41,7 @@ Your linux kernel needs to be compiled with '/dev/tcp' for this to work (which i
 
       Arguments:
 	        -h         host/host range (dash or comma)   | -h 192.168.10-11.0
-		-f         host file line separated          | -f hostlist.txt
+	        -f         host file line separated          | -f hostlist.txt
 	        -p         port/port range (dash or comma)   | -p 1-1024
 	        -r         protocol tcp (default) or udp     | -r tcp
 	        -t         connection timeout (seconds)      | -t 1
