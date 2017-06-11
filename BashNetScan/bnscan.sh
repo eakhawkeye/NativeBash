@@ -69,7 +69,7 @@ function exit_on_error()
 function usage()
 {
 	# [USER OUTPUT] Help
-	echo -e "  Usage: $( basename $0 ) action -h <target_hosts> -p <target_ports> ..more arguments"
+	echo -e "  Usage: $( basename $0 ) action (-h <target_hosts>|-f <target_host_file>) -p <target_ports> ..more arguments"
 	echo -e "\n\tActions:         Description:"
 	echo -e "\t      scan         Host & Port Scanner  | args: -h -p [-r -t -b -n]"
 	echo -e "\t    stress         Port Stress Tester   | args: -h -p [-r -t -l -u -n]"
@@ -77,6 +77,7 @@ function usage()
 	echo -e "\t     range         Host Range Expansion | args: -h"
 	echo -e "\n      Arguments:"
 	echo -e "\t        -h         host/host range (dash or comma)   | -h 192.168.2-3.0"
+	echo -e "\t        -f         host file line separated          | -f hostlist.txt"
 	echo -e "\t        -p         port/port range (dash or comma)   | -p 1-1024"
 	echo -e "\t        -r         protocol tcp (default) or udp     | -r tcp"
 	echo -e "\t        -t         connection timeout (seconds)      | -t 1"
@@ -155,7 +156,7 @@ function input_parser()
 
 	# Determine the datatype and split method
 	case ${i_type}:${i_data} in
-		ports:*-* ) # Port: Range: n-n
+		ports:*[0-9]-[0-9]* ) # Port Range: n-n
 					IFS=- read start end <<< ${i_data}
 
 					# Incase the IFS parsing doesn't work...
@@ -170,7 +171,7 @@ function input_parser()
 					done
 					;;
 
-		  ips:*-* )	#   IP: Range 192.168.2.1-255
+		  ips:*[0-9]-[0-9]* ) # IP Range: 192.168.2.1-255
 					IFS=. read -ra a_temp <<< ${i_data}
 
 					# Incase the IFS parsing doesn't work...
@@ -215,13 +216,27 @@ function input_parser()
 					done
 					;;
 
-		      *,* ) # Port: Comma Separated: n,n,n,n
-					#   IP: Comma Separated: 192.168.1.10,192.168.2.12
-					IFS=, read -ra a_parsed <<< ${i_data}
+		   file:* ) # Process Host File line separated
+					a_parsed=()
+					for h in $(cat ${i_data}); do
+						a_parsed+=( ${h} )
+					done
 					;;
 
-		        * )	# Port: Single Entry: n
-					#   IP: Single Entry: 192.168.1.10
+		      *,* ) #        Port: Comma Separated: n,n,n,n
+					# IP/Hostname: Comma Separated: 192.168.1.10,192.168.2.12
+					IFS=, read -ra a_parsed <<< ${i_data}
+
+					# Incase the IFS Pasing doesn't work...
+					if [ "${a_parsed[2]}x" == "x" ]; then
+						a_temp=()
+						for e in ${a_parsed[0]}; do a_temp+=( ${e} ); done
+						a_parsed=( ${a_temp[@]} )
+					fi
+					;;
+
+		        * )	#        Port: Single Entry: n
+					# IP/Hostname: Single Entry: 192.168.1.10
 					a_parsed+=( ${i_data} )
 					;;
 	esac
@@ -431,6 +446,7 @@ shift
 while [ "${1}" ]; do
 	case "${1}" in
 		"-h" | "--host"* ) ary_hosts=( $( input_parser "ips" ${2} ) ); shift ;;
+		"-f" | "--file"* ) if ! [ -e "${2}" ]; then usage; exit 1; fi; ary_hosts=( $( input_parser "file" ${2} ) ); shift ;;
 		"-p" | "--port"* ) ary_ports=( $( input_parser "ports" ${2} ) ); shift ;;
 		"-r" | "--prot"* ) protocol="${2}"; shift ;;
 		"-b" | "--bann"* ) g_banner=true ;;
