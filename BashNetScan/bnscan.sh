@@ -198,8 +198,8 @@ function input_parser()
 
 							# Determine the octet to expand and do it
 							case ${num} in
+								# The first line expands a class A IP which is incredibly large. Uncomment and goodluck.
 							#	0 ) declare -a 'a_parsed=( {'"${start}..${end}"'}.{'"0..255"'}.{'"0..255"'}.{'"1..254"'} )' ;;
-								0 ) echo "You're crazy to expand the first octet. Uncomment above this line if you're so daring." ;;
 								1 ) declare -a 'a_parsed=( '"${s_temp}"'{'"${start}..${end}"'}.{'"0..255"'}.{'"1..254"'} )' ;;
 								2 ) declare -a 'a_parsed=( '"${s_temp}"'{'"${start}..${end}"'}.{'"1..254"'} )' ;;
 								3 ) declare -a 'a_parsed=( '"${s_temp}"'{'"${start}..${end}"'} )' ;;
