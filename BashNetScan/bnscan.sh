@@ -34,6 +34,7 @@
 test_limit=3000
 connect_timeout=1
 micro_sleep=5000
+sleep_cmd="usleep"
 protocol="tcp"
 g_banner=false
 no_ping=false
@@ -413,9 +414,10 @@ function process_stress_port()
     local protocol=${3}
     local limit=${4}
     local connect_timeout=${5}
-    local u_sleep=${6}
-    local no_ping=${7}
-    local ignore_ping=${8}
+    local cmd_sleep=${6}
+    local u_sleep=${7}
+    local no_ping=${8}
+    local ignore_ping=${9}
     local rtrn
 
 
@@ -448,7 +450,7 @@ function process_stress_port()
 
                 # [USER OUTPUT] Update the output counts in real-time
                 echo -en "    Port: ${target_port} | Success: ${suc_count} | Fail: ${fail_count} | Timeouts: ${timeout_count}\r"
-                usleep ${u_sleep} 2>/dev/null
+                ${cmd_sleep} ${u_sleep} 2>/dev/null
 
             done
             echo
@@ -493,10 +495,18 @@ while [ "${1}" ]; do
     shift
 done
 
+# [SLEEP CHECK] - Determine which sleep to use and convert input as needed
+#   sleep - Newer bash use builtin. Convert input to decimal for micro
+#   usleep - Older bash make external call. No input conversion
+if sleep 0.00001 > /dev/null 2>&1; then
+    sleep_cmd="sleep"
+    micro_sleep=$( echo "scale=6; ${micro_sleep} / 1000000" | bc )
+fi
+
 # [ACTION] - Now run the request
 case "${action}" in
       "scan" ) process_scan ary_hosts[@] ary_ports[@] "${protocol}" ${connect_timeout} ${g_banner} ${no_ping} ${ignore_ping};;
-    "stress" ) process_stress_port ary_hosts[@] ary_ports[@] "${protocol}" ${test_limit} ${connect_timeout} ${micro_sleep} ${no_ping} ${ignore_ping};;
+    "stress" ) process_stress_port ary_hosts[@] ary_ports[@] "${protocol}" ${test_limit} ${connect_timeout} ${sleep_cmd} ${micro_sleep} ${no_ping} ${ignore_ping};;
     "banner" ) process_banners ary_hosts[@] ary_ports[@] "${protocol}" ${connect_timeout} ${no_ping} ${ignore_ping};;
      "range" ) echo -e "${ary_hosts[@]}" ;;
            * ) echo "[-] Impossible" ;;
