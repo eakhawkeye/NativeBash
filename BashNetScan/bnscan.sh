@@ -8,12 +8,8 @@
 #
 # ### One Liners ###
 # Host:Port Check:
-# function ping_port() { local myhost=${1}; local myport=${2}; timeout 2 bash -c "exec > /dev/tcp/${myhost}/${myport}" > /dev/null 2>&1; if [[ $? -eq 0 ]]; then echo "alive"; else echo "dead"; fi; }
+# function ping_port() { local myhost=${1}; local myport=${2}; if timeout 2 bash -c "exec > /dev/tcp/${myhost}/${myport}" > /dev/null 2>&1; then echo "alive"; else echo "dead"; fi; }
 # -$ ping_port msn.com 80
-#
-# Host & Port Reliability Check:
-# function test_port() { local myhost=${1}; local myhost=${2}; suc_count=0; fail_count=0; while true; do timeout 2 bash -c "exec > /dev/tcp/${myhost}/${myport}" > /dev/null 2>&1; if [[ $? -eq 0 ]]; then ((suc_count++)); else ((fail_count++)); fi; echo -en "Success: ${suc_count} | Fail: ${fail_count}\r";  usleep 500; done; }
-# -$ test_port 192.168.2.99 443
 #
 # Grab Host & Port Banner:
 # function get_banner(){ local myhost=${1}; local port=${2}; exec 3<>/dev/tcp/${myhost}/${port}; echo -e "HEAD / HTTP/1.1\r\n\r\n" >&3; output=$(timeout 1 bash -c cat <&3 2>/dev/null); echo -e "${output}"; }
@@ -420,15 +416,11 @@ function process_stress_port()
     local u_sleep=${6}
     local no_ping=${7}
     local ignore_ping=${8}
-    local suc_count=0
-    local fail_count=0
-    local timeout_count=0
     local rtrn
 
 
     # HOSTS - Iterate through hosts
     for target_host in ${ary_target_hosts[@]}; do
-        echo -ne "  Host: ${target_host}"
 
         # PING - then decide what to do next
         if ! determine_ping_host_results ${target_host} ${connect_timeout} ${no_ping} ${ignore_ping}; then
@@ -437,12 +429,12 @@ function process_stress_port()
 
         # PORTS - Iterate through ports
         for target_port in ${ary_target_ports[@]}; do
-
-            # [USER OUTPUT] Remind the user of their parameters
-            echo -e "    Port: ${target_port}\n    Reqs: ${limit}"
+            local suc_count=0
+            local fail_count=0
+            local timeout_count=0   
 
             # Start the port test iterations until the limit is reached
-            while [ $((suc_count + fail_count)) -lt ${limit} ]; do 
+            while [ $((suc_count + fail_count + timeout_count)) -lt ${limit} ]; do 
 
                 # Call on the port test and store the response code
                 # [WARN] This function calls upon another
@@ -455,7 +447,7 @@ function process_stress_port()
                 esac
 
                 # [USER OUTPUT] Update the output counts in real-time
-                echo -en "    Success: ${suc_count} | Fail: ${fail_count} | Timeouts: ${timeout_count}\r"
+                echo -en "    Port: ${target_port} | Success: ${suc_count} | Fail: ${fail_count} | Timeouts: ${timeout_count}\r"
                 usleep ${u_sleep} 2>/dev/null
 
             done

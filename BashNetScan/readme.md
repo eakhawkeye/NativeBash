@@ -31,7 +31,7 @@ Requirements:
 Your linux kernel needs to be compiled with '/dev/tcp' for this to work (which is a standard setup).
 
 ```
-  Usage: bashnscan action (-h <target_hosts>|-f <target_host_file>) -p <target_ports> ..more arguments
+  Usage: bnscan.sh action (-h <target_hosts>|-f <target_host_file>) -p <target_ports> ..more arguments
 
 	Actions:         Description:
 	      scan         Host & Port Scanner  | args: (-h|-f) -p [-r -t -b -n]
@@ -40,7 +40,7 @@ Your linux kernel needs to be compiled with '/dev/tcp' for this to work (which i
 	     range         Host Range Expansion | args:  -h
 
       Arguments:
-	        -h         host/host range (dash or comma)   | -h 192.168.10-11.0
+	        -h         host/host range (dash or comma)   | -h 192.168.2-3.0
 	        -f         host file line separated          | -f hostlist.txt
 	        -p         port/port range (dash or comma)   | -p 1-1024
 	        -r         protocol tcp (default) or udp     | -r tcp
@@ -48,7 +48,9 @@ Your linux kernel needs to be compiled with '/dev/tcp' for this to work (which i
 	        -l         limit connections for stress test | -l 3000
 	        -u         micro sleep between connections   | -u 5000
 	        -b         banner grab during scanner action | -b
-	        -n         no ping - skip host ping          | -n	
+	        -n         no ping - skip host ping          | -n
+	        -i         ping but ignore results           | -i
+
 ```
 
 Examples
@@ -114,11 +116,15 @@ Connection: close
 
 Stress Test
 ```
--$ bnscan -h 192.168.20.99 -p 443
-Host: 192.168.20.99
-Port: 443
-Reqs: 3000
-Success: 2987 | Fail: 4 | Timeouts: 9
+-$ bnscan stress -h 192.168.2.99-98 -p 443-445 -l 500
+  Host: 192.168.2.99              (pingable)
+    Port: 443 | Success: 500 | Fail: 0 | Timeouts: 0
+    Port: 444 | Success: 0 | Fail: 500 | Timeouts: 0
+    Port: 445 | Success: 494 | Fail: 0 | Timeouts: 6
+  Host: 192.168.2.98              (pingable)
+    Port: 443 | Success: 0 | Fail: 500 | Timeouts: 0
+    Port: 444 | Success: 0 | Fail: 500 | Timeouts: 0
+    Port: 445 | Success: 500 | Fail: 0 | Timeouts: 0
 ```
 
 Range
