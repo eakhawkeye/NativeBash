@@ -41,6 +41,7 @@ micro_sleep=5000
 protocol="tcp"
 g_banner=false
 no_ping=false
+ignore_ping=false
 action=
 
 # Assign your port service variable
@@ -84,7 +85,8 @@ function usage()
 	echo -e "\t        -l         limit connections for stress test | -l 3000"
 	echo -e "\t        -u         micro sleep between connections   | -u 5000"
 	echo -e "\t        -b         banner grab during scanner action | -b"
-	echo -e "\t        -n         no ping - skip host ping          | -n\n"
+	echo -e "\t        -n         no ping - skip host ping          | -n"
+	echo -e "\t        -i         ping but ignore results           | -i\n"
 }
 
 function ping_host()
@@ -96,8 +98,7 @@ function ping_host()
 	# Ping once, quietly.
 	ping -c 1 -W ${connect_timeout} -q ${target_host} > /dev/null 2>&1
 
-	# Rerturn command response
-	echo $?
+	return $?
 }
 
 function ping_port()
@@ -111,8 +112,7 @@ function ping_port()
 	# Controlled with a timeout, attempt to connect to the address:port
 	timeout ${connect_timeout} bash -c "exec > /dev/${protocol}/${target_host}/${target_port}" > /dev/null 2>&1
 
-	# Return command response code
-	echo $?
+	return $?
 }
 
 function lookup_port()
@@ -245,6 +245,55 @@ function input_parser()
 	echo "${a_parsed[@]}"
 }
 
+function determine_ping_host_results() {
+	# Ping Host and Decide - requires ping_host()
+	#   Take the hostname, no_ping, & ignore_ping user requests
+	#   ping the host then output the results along with a 
+	#   response code which is used to determine continuation
+	local target_host=${1}
+	local connect_timeout=${2}
+	local no_ping=${3}
+	local ignore_ping=${4}
+	local message="Host: ${target_host}"
+	local rtrn=0
+	local GREENCOLOR='\E[0;32m'
+	local REDCOLOR='\E[0;31m'
+	local ENDCOLOR='\E[0m'
+
+
+	echo -en "  Host: ${target_host}\r"
+
+	if ${no_ping}; then
+
+		# Don't Ping
+		printf "%-34s" "  Host: ${target_host}"; 
+		printf "%10s\n" "(skip-ping)"
+
+	else
+
+		# Ping & Determine the response code and output
+		ping_host ${target_host} ${connect_timeout}
+		case ${?} in
+			0 ) # If the host is alive to ping
+				printf "%-34s" "  Host: ${target_host}"; 
+				printf "${GREENCOLOR}%10s${ENDCOLOR}\n" "(pingable)"
+				;;
+			* ) # If the host is down to ping
+				if ${ignore_ping}; then
+					printf "%-34s" "  Host: ${target_host}"; 
+					printf "${REDCOLOR}%14s${ENDCOLOR}\n" "(not-pingable)"
+				else
+					echo -en "                                         \r"
+					rtrn=1
+				fi
+				;;
+		esac
+
+	fi
+
+	return ${rtrn}
+}
+
 function process_scan()
 {
 	# Port Scanner - in pure bash!!!
@@ -258,6 +307,7 @@ function process_scan()
 	local connect_timeout=${4}
 	local g_banner=${5}
 	local no_ping=${6}
+	local ignore_ping=${7}
 	local lk_port=""
 	local rtrn=""
 	local banner=""
@@ -268,24 +318,10 @@ function process_scan()
 	# HOSTS - Iterate through hosts
 	for target_host in ${ary_target_hosts[@]}; do
 
-		# Test to be sure the host is alive
-		echo -en "  Host: ${target_host}\r"
-		rtrn=$( ping_host ${target_host} ${connect_timeout} )
-		case ${rtrn} in
-			0 ) # If the host is alive to ping
-				printf "%-34s" "  Host: ${target_host}"; 
-				printf "${GREENCOLOR}%10s${ENDCOLOR}\n" "(pingable)"
-				;;
-			* ) # If the host is down to ping
-				if ${no_ping}; then
-					printf "%-34s" "  Host: ${target_host}"; 
-					printf "${REDCOLOR}%14s${ENDCOLOR}\n" "(non-pingable)"
-				else
-					echo -en "                                         \r"
-					continue
-				fi
-				;;
-		esac
+		# PING - then decide what to do next
+		if ! determine_ping_host_results ${target_host} ${connect_timeout} ${no_ping} ${ignore_ping}; then
+			continue
+		fi
 
 		# PORTS - Iterate through ports
 		for target_port in ${ary_target_ports[@]}; do
@@ -293,18 +329,21 @@ function process_scan()
 			# Lookup the port service and ping the port...
 			echo -en "            ${target_port}\r"
 			lk_port=$( lookup_port ${target_port} ${protocol} ${f_services} )
-			rtrn=$( ping_port ${target_host} ${target_port} ${protocol} ${connect_timeout} )
 
 			# ...depending on the return, if alive output, or if not move to the next port
-			case ${rtrn} in
+			ping_port ${target_host} ${target_port} ${protocol} ${connect_timeout}			
+			case ${?} in
 				0 ) # If the port is up
 					printf "%15s" "${target_port}/"
 					printf "%-15s" "${lk_port}"
 					printf "${GREENCOLOR}%9s${ENDCOLOR}" "open"
 					# If requested, attempt to get a banner from the port and display a single, important line only
 					if ${g_banner}; then
-						banner=""
-						banner=$(get_banner ${target_host} ${target_port} ${protocol} ${connect_timeout} | egrep -i 'server|welcome|[0-9]\.[0-9]' | grep -v HTTP/1)
+						unset banner
+						banner=$(get_banner ${target_host} ${target_port} ${protocol} ${connect_timeout} | \
+								 egrep -i 'server|welcome|[0-9]\.[0-9]' | \
+								 grep -v HTTP/1 | \
+								 head -n1)
 					fi
 					# No matter what, print a new line
 					printf "%15s\n" "  ${banner}"
@@ -338,29 +377,28 @@ function process_banners()
 	# HOSTS - Iterate through hosts
 	for target_host in ${ary_target_hosts[@]}; do
 
-		# If the host is up then continue onto the ports
-		echo -en "Host: ${target_host}      \r"
-		if [[ $(ping_host ${target_host} ${connect_timeout}) -eq 0 ]]; then
-			
-			# PORTS - Iterate through ports
-			for target_port in ${ary_target_ports[@]}; do
-
-				# If the port is up then continue with the banner grab
-				echo -en "Host: ${target_host}:${target_port}        \r"
-				if [[ $(ping_port ${target_host} ${target_port} ${protocol} ${connect_timeout}) -eq 0 ]]; then
-
-					# Attempt to get the banner but only output if a banner is returned
-					banner=$(get_banner ${target_host} ${target_port} ${protocol} ${connect_timeout})
-					if [ "${banner}" ]; then
-						echo -e "Host: ${target_host}:${target_port}"
-						echo -e "${banner}\n"
-					fi
-				
-				fi
-
-			done
-
+		# PING - then decide what to do next
+		if ! determine_ping_host_results ${target_host} ${connect_timeout} ${no_ping} ${ignore_ping}; then
+			continue
 		fi
+			
+		# PORTS - Iterate through ports
+		for target_port in ${ary_target_ports[@]}; do
+
+			# If the port is up then continue with the banner grab
+			echo -en "Host: ${target_host}:${target_port}        \r"
+			if ping_port ${target_host} ${target_port} ${protocol} ${connect_timeout}; then
+
+				# Attempt to get the banner but only output if a banner is returned
+				banner=$(get_banner ${target_host} ${target_port} ${protocol} ${connect_timeout})
+				if [ "${banner}" ]; then
+					echo -e "Host: ${target_host}:${target_port}"
+					echo -e "${banner}\n"
+				fi
+			
+			fi
+
+		done
 
 	done
 
@@ -381,6 +419,7 @@ function process_stress_port()
 	local connect_timeout=${5}
 	local u_sleep=${6}
 	local no_ping=${7}
+	local ignore_ping=${8}
 	local suc_count=0
 	local fail_count=0
 	local timeout_count=0
@@ -389,23 +428,26 @@ function process_stress_port()
 
 	# HOSTS - Iterate through hosts
 	for target_host in ${ary_target_hosts[@]}; do
+		echo -ne "  Host: ${target_host}"
+
+		# PING - then decide what to do next
+		if ! determine_ping_host_results ${target_host} ${connect_timeout} ${no_ping} ${ignore_ping}; then
+			continue
+		fi		
 
 		# PORTS - Iterate through ports
 		for target_port in ${ary_target_ports[@]}; do
 
 			# [USER OUTPUT] Remind the user of their parameters
-			echo -e "Host: ${target_host}\nPort: ${target_port}\nReqs: ${limit}"
+			echo -e "    Port: ${target_port}\n    Reqs: ${limit}"
 
 			# Start the port test iterations until the limit is reached
 			while [ $((suc_count + fail_count)) -lt ${limit} ]; do 
 
 				# Call on the port test and store the response code
 				# [WARN] This function calls upon another
-				unset rtrn
-				rtrn=$( ping_port ${target_host} ${target_port} ${protocol} ${connect_timeout} )
-
-				# Determine the outcome based on the response code
-				case ${rtrn} in
+				ping_port ${target_host} ${target_port} ${protocol} ${connect_timeout}
+				case $? in
 					0) ((suc_count++));;
 					1) ((fail_count++));;
 				  124) ((timeout_count++));;
@@ -413,8 +455,8 @@ function process_stress_port()
 				esac
 
 				# [USER OUTPUT] Update the output counts in real-time
-				echo -en "Success: ${suc_count} | Fail: ${fail_count} | Timeouts: ${timeout_count}\r"
-				usleep ${u_sleep}
+				echo -en "    Success: ${suc_count} | Fail: ${fail_count} | Timeouts: ${timeout_count}\r"
+				usleep ${u_sleep} 2>/dev/null
 
 			done
 			echo
@@ -454,15 +496,16 @@ while [ "${1}" ]; do
 		"-l" | "--limi"* ) test_limit=${2} ;;
 		"-u" | "--usle"* ) micro_sleep=${2} ;;
 		"-n" | "--nopi"* ) no_ping=true ;;
+		"-i" | "--igno"* ) ignore_ping=true;;
 	esac
 	shift
 done
 
 # [ACTION] - Now run the request
 case "${action}" in
-	  "scan" ) process_scan ary_hosts[@] ary_ports[@] "${protocol}" ${connect_timeout} ${g_banner} ${no_ping} ;;
-	"stress" ) process_stress_port ary_hosts[@] ary_ports[@] "${protocol}" ${test_limit} ${connect_timeout} ${micro_sleep} ${no_ping} ;;
-	"banner" ) process_banners ary_hosts[@] ary_ports[@] "${protocol}" ${connect_timeout} ${no_ping} ;;
+	  "scan" ) process_scan ary_hosts[@] ary_ports[@] "${protocol}" ${connect_timeout} ${g_banner} ${no_ping} ${ignore_ping};;
+	"stress" ) process_stress_port ary_hosts[@] ary_ports[@] "${protocol}" ${test_limit} ${connect_timeout} ${micro_sleep} ${no_ping} ${ignore_ping};;
+	"banner" ) process_banners ary_hosts[@] ary_ports[@] "${protocol}" ${connect_timeout} ${no_ping} ${ignore_ping};;
 	 "range" ) echo -e "${ary_hosts[@]}" ;;
 	       * ) echo "[-] Impossible" ;;
 esac
