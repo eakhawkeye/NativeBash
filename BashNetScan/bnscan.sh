@@ -25,6 +25,7 @@
 # Read/Write TCP: http://www.linuxjournal.com/content/more-using-bashs-built-devtcp-file-tcpip
 # Declare Brace Expansion: http://wiki.bash-hackers.org/syntax/expansion/brace
 #
+trap bashtrap INT
 
 
 
@@ -53,6 +54,13 @@ fi
 #############
 # Functions #
 #############
+function bashtrap()
+{
+    # In case of cancel
+    echo "  User canceled! Backing up current file."
+    exit 5
+}
+
 function exit_on_error()
 {
     # Exit the script when an error occurs
