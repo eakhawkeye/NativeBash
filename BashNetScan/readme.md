@@ -77,7 +77,7 @@ IP/Port Scanner
 ```      
 Banner Grab
 ```
--$ bashnscan banner -h 192.168.200.90-100 -p 1-1024
+-$ bnscan banner -h 192.168.200.90-100 -p 1-1024
 Host: 192.168.200.98:80        
 HTTP/1.1 404 Not Found
 CONTENT-LENGTH: 0
@@ -116,7 +116,7 @@ Connection: close
 
 Stress Test
 ```
--$ bnscan.sh stress -h 192.168.200.98-99 -p 22,80,445,5001 -l 500
+-$ bnscan stress -h 192.168.200.98-99 -p 22,80,445,5001 -l 500
   Host: 192.168.200.98            (pingable)
         _port      _succ    _fail    _tmout
            22          0      500         0
