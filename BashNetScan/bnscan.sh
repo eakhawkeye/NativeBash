@@ -57,7 +57,7 @@ fi
 function bashtrap()
 {
     # In case of cancel
-    echo "  User canceled! Backing up current file."
+    echo -e "\n  User canceled! Backing up current file."
     exit 5
 }
 
@@ -437,6 +437,9 @@ function process_stress_port()
             continue
         fi      
 
+        # Third print method headers
+        printf "%13s %10s %8s %9s\n" "_port" "_succ" "_fail" "_tmout"
+
         # PORTS - Iterate through ports
         for target_port in ${ary_target_ports[@]}; do
             local suc_count=0
@@ -457,7 +460,8 @@ function process_stress_port()
                 esac
 
                 # [USER OUTPUT] Update the output counts in real-time
-                echo -en "    Port: ${target_port} | Success: ${suc_count} | Fail: ${fail_count} | Timeouts: ${timeout_count}\r"
+                #printf "    Port: %5i  Success: %-5i  Fail: %-5i  Timeouts: %-5i\r" ${target_port} ${suc_count} ${fail_count} ${timeout_count}
+                printf "%13i %10i %8i %9i\r" ${target_port} ${suc_count} ${fail_count} ${timeout_count}
                 ${cmd_sleep} ${u_sleep} 2>/dev/null
 
             done

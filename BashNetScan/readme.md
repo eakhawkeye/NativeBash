@@ -116,15 +116,19 @@ Connection: close
 
 Stress Test
 ```
--$ bnscan stress -h 192.168.2.99-98 -p 443-445 -l 500
-  Host: 192.168.2.99              (pingable)
-    Port: 443 | Success: 500 | Fail: 0 | Timeouts: 0
-    Port: 444 | Success: 0 | Fail: 500 | Timeouts: 0
-    Port: 445 | Success: 494 | Fail: 0 | Timeouts: 6
-  Host: 192.168.2.98              (pingable)
-    Port: 443 | Success: 0 | Fail: 500 | Timeouts: 0
-    Port: 444 | Success: 0 | Fail: 500 | Timeouts: 0
-    Port: 445 | Success: 500 | Fail: 0 | Timeouts: 0
+-$ bnscan.sh stress -h 192.168.200.98-99 -p 22,80,445,5001 -l 500
+  Host: 192.168.200.98            (pingable)
+        _port      _succ    _fail    _tmout
+           22          0      500         0
+           80        470        0        30
+          445        500        0         0
+         5001          0      500         0
+  Host: 192.168.200.99            (pingable)
+        _port      _succ    _fail    _tmout
+           22        500        0         0
+           80        500        0         0
+          445        496        0         4
+         5001          0      500         0
 ```
 
 Range
