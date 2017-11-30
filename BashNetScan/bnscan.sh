@@ -266,13 +266,12 @@ function determine_ping_host_results() {
     local ENDCOLOR='\E[0m'
 
 
-    echo -en "  Host: ${target_host}\r"
+    printf "%-33s" ${target_host}
 
     if ${no_ping}; then
 
         # Don't Ping
-        printf "%-34s" "  Host: ${target_host}"; 
-        printf "%10s\n" "(skip-ping)"
+        printf "%10s\n" "(skip-ping)" 
 
     else
 
@@ -280,12 +279,10 @@ function determine_ping_host_results() {
         ping_host ${target_host} ${connect_timeout}
         case ${?} in
             0 ) # If the host is alive to ping
-                printf "%-34s" "  Host: ${target_host}"; 
                 printf "${GREENCOLOR}%10s${ENDCOLOR}\n" "(pingable)"
                 ;;
             * ) # If the host is down to ping
                 if ${ignore_ping}; then
-                    printf "%-34s" "  Host: ${target_host}"; 
                     printf "${REDCOLOR}%14s${ENDCOLOR}\n" "(not-pingable)"
                 else
                     echo -en "                                         \r"
@@ -332,15 +329,14 @@ function process_scan()
         for target_port in ${ary_target_ports[@]}; do
 
             # Lookup the port service and ping the port...
-            echo -en "            ${target_port}\r"
+            printf "%15s\r" ${target_port}
             lk_port=$( lookup_port ${target_port} ${protocol} ${f_services} )
 
             # ...depending on the return, if alive output, or if not move to the next port
             ping_port ${target_host} ${target_port} ${protocol} ${connect_timeout}          
             case ${?} in
                 0 ) # If the port is up
-                    printf "%15s" "${target_port}/"
-                    printf "%-15s" "${lk_port}"
+                    printf "%15s%-15s" "${target_port}/" ${lk_port}
                     printf "${GREENCOLOR}%9s${ENDCOLOR}" "open"
                     # If requested, attempt to get a banner from the port and display a single, important line only
                     if ${g_banner}; then

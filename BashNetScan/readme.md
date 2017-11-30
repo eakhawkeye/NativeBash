@@ -59,13 +59,13 @@ Examples
 IP/Port Scanner
 ```
 -$ bnscan scan -h 192.168.200.90-100 -p 1-1024 -b
-  Host: 192.168.200.98              (pingable)
+192.168.200.98                  (pingable)
             80/http                open  SERVER: EPSON_Linux UPnP/1.0 ...
            139/netbios-ssn         open               
            445/microsoft-ds        open               
            515/printer             open               
            631/ipp                 open  SERVER: EPSON_Linux UPnP/1.0 ...
-  Host: 192.168.200.99              (pingable)
+192.168.200.99                   (pingable)
             22/ssh                 open  SSH-2.0-OpenSSH_6.8p1-hpn14v6
             53/domain              open               
             80/http                open  Server: nginx
@@ -117,13 +117,13 @@ Connection: close
 Stress Test
 ```
 -$ bnscan stress -h 192.168.200.98-99 -p 22,80,445,5001 -l 500
-  Host: 192.168.200.98            (pingable)
+192.168.200.98                   (pingable)
         _port      _succ    _fail    _tmout
            22          0      500         0
            80        470        0        30
           445        500        0         0
          5001          0      500         0
-  Host: 192.168.200.99            (pingable)
+192.168.200.99                   (pingable)
         _port      _succ    _fail    _tmout
            22        500        0         0
            80        500        0         0
