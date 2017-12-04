@@ -3,6 +3,7 @@ NativeBash - BashNetScan
 A native bash network scanning tool
  - Host Scan
  - Port Scan
+ - Port Ping
  - Port Stress Test
  - Banner Grab
 
@@ -10,7 +11,7 @@ A native bash network scanning tool
 
 Usage
 -------------
-Working strictly from the most basic bash utilities (check the source), this tool allows scanning functionality without adding new software.
+Working strictly from the most basic bash utilities (check the source), this tool allows scanning functionality without adding new software. This does NOT use *tcat, telnet, or any other external utility to check ports.
 
 Host/Port Scanning: 
 Scan through a range of hosts and ports. Ranges supported include 1x dash (-) or comma separated for both IPs and Ports (not cidr) and, of course, the host can also be a FQDN. The display will be only that of live hosts and responding ports. Include -b and we'll try to get a banner parsed out to the most important line. For better banner data use the banner action.
@@ -20,6 +21,9 @@ Use to test the quality of a connection to a specific port. It does work on rang
 
 Banner Grabbing: 
 Get the raw (ascii still) banner data from ports which respond. Supports host and port ranges but will only display data if a banner is successfully acquired.
+
+Port (ping):
+Ping a single port for a single host and exit with the results. This is useful for scripting ports checks and could be used in place of nc -z.
 
 Range: 
 As a bonus I output the IPs generated from my parser. Sadly, no CIDR range supported yet but the stackoverflow community whipped up something interesting: http://stackoverflow.com/questions/16986879/bash-script-to-list-all-ips-in-prefix
@@ -38,6 +42,7 @@ Your linux kernel needs to be compiled with '/dev/tcp' for this to work (which i
 	    stress         Port Stress Tester   | args: (-h|-f) -p [-r -t -l -u -n]
 	    banner         Port Banner Grabber  | args: (-h|-f) -p [-r -t -n]
 	     range         Host Range Expansion | args:  -h
+	      port         Port Check           | args:  -h -p (no ranges accepted)
 
       Arguments:
 	        -h         host/host range (dash or comma)   | -h 192.168.2-3.0
@@ -75,6 +80,13 @@ IP/Port Scanner
            443/https               open  Server: nginx
            445/microsoft-ds        open               
 ```      
+
+Port (Ping)
+```
+-$ bnscan port -h 192.168.200.99 -p 80; echo $?
+0
+```
+
 Banner Grab
 ```
 -$ bnscan banner -h 192.168.200.90-100 -p 1-1024
@@ -133,6 +145,6 @@ Stress Test
 
 Range
 ```
--$ bnscan range -h 192.168.2.90-100
-192.168.2.90 192.168.2.91 192.168.2.92 192.168.2.93 192.168.2.94 192.168.2.95 192.168.2.96 192.168.2.97 192.168.2.98 192.168.2.99 192.168.2.100
+-$ bnscan range -h 192.168.200.90-100
+192.168.200.90 192.168.200.91 192.168.200.92 192.168.200.93 192.168.200.94 192.168.200.95 192.168.200.96 192.168.200.97 192.168.200.98 192.168.200.99 192.168.200.100
 ```

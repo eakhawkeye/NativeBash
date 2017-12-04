@@ -81,6 +81,7 @@ function usage()
     echo -e "\t    stress         Port Stress Tester   | args: (-h|-f) -p [-r -t -l -u -n]"
     echo -e "\t    banner         Port Banner Grabber  | args: (-h|-f) -p [-r -t -n]"
     echo -e "\t     range         Host Range Expansion | args:  -h"
+    echo -e "\t      port         Port Check           | args:  -h -p (no ranges accepted)"
     echo -e "\n      Arguments:"
     echo -e "\t        -h         host/host range (dash or comma)   | -h 192.168.2-3.0"
     echo -e "\t        -f         host file line separated          | -f hostlist.txt"
@@ -476,6 +477,7 @@ case "${1}" in
     "stress" ) action="stress" ;;
     "banner" ) action="banner" ;;
      "range" ) action="range" ;;
+      "port" ) action="port" ;;
            * ) echo "[-] Action: ${1} unsupported."; usage; exit 1;;
 esac
 shift
@@ -511,6 +513,7 @@ case "${action}" in
     "stress" ) process_stress_port ary_hosts[@] ary_ports[@] "${protocol}" ${test_limit} ${connect_timeout} ${sleep_cmd} ${micro_sleep} ${no_ping} ${ignore_ping};;
     "banner" ) process_banners ary_hosts[@] ary_ports[@] "${protocol}" ${connect_timeout} ${no_ping} ${ignore_ping};;
      "range" ) echo -e "${ary_hosts[@]}" ;;
+      "port" ) ping_port ${ary_hosts[0]} ${ary_ports[0]} "${protocol}" ${connect_timeout}; exit $?;;
            * ) echo "[-] Impossible" ;;
 esac
 
