@@ -75,7 +75,7 @@ function exit_on_error()
 function usage()
 {
     # [USER OUTPUT] Help
-    echo -e "  Usage: $( basename $0 ) action (-h <target_hosts>|-f <target_host_file>) -p <target_ports> ..more arguments"
+    echo -e "  Usage: $( basename $0 ) <action> (-h <target_hosts>|-f <target_host_file>) -p <target_ports> ..more arguments"
     echo -e "\n\tActions:         Description:"
     echo -e "\t      scan         Host & Port Scanner  | args: (-h|-f) -p [-r -t -b -n]"
     echo -e "\t    stress         Port Stress Tester   | args: (-h|-f) -p [-r -t -l -u -n]"
@@ -156,97 +156,94 @@ function input_parser()
     local i_data=${2}
     local a_parsed=()
     local a_temp=()
+    local a_input=()
     local s_temp=""
     local parse_method="ifs"
+    local input=
 
-    # Determine the datatype and split method
-    case ${i_type}:${i_data} in
-        ports:*[0-9]-[0-9]* ) # Port Range: n-n
-                    IFS=- read start end <<< ${i_data}
+    # Iterate through the input with ',' as the parser and build the target arrays
+    ogIFS=${IFS}; IFS=, 
+    for input in ${i_data}; do 
 
-                    # Incase the IFS parsing doesn't work...
-                    if [ "${end}x" == "x" ]; then
-                        start=$(cut -d- -f 1 <<< ${i_data})
-                        end=$(cut -d- -f 2 <<< ${i_data})
-                    fi
+        # Determine the datatype and split method
+        case ${i_type}:${input} in
+            ports:*[0-9]-[0-9]* ) # Port Range: n-n
+                        IFS=- read start end <<< ${input}
 
-                    # Iterate, building the port array
-                    for ((port=start; port <= end; port++)); do
-                        a_parsed+=( ${port} )
-                    done
-                    ;;
-
-          ips:*[0-9]-[0-9]* ) # IP Range: 192.168.2.1-255
-                    IFS=. read -ra a_temp <<< ${i_data}
-
-                    # Incase the IFS parsing doesn't work...
-                    if [ "${a_temp[2]}x" == "x" ]; then
-                        a_temp=()
-                        for i in {1..4..1}; do a_temp+=( $(cut -d. -f ${i} <<< ${i_data}) ); done
-                        parse_method="alt"
-                    fi
-
-                    # Iterate through the elements of IPv4 stored in ${a_temp[@]}
-                    for num in {0..3}; do
-
-                        # When you find the range, split it, expand it based on position, and store in an array
-                        if [[ "${a_temp[${num}]}" == *[0-9]"-"[0-9]* ]]; then
-                            
-                            # Determine the parsing method (in case IFS isn't working)
-                            case "${parse_method}" in 
-                                "ifs" ) IFS=- read start end <<< ${a_temp[${num}]}
-                                        ;;
-                                "alt" ) start=$(cut -d- -f 1 <<< ${i_data} | cut -d. -f $((num+1)))
-                                        end=$(cut -d- -f 2 <<< ${i_data} | cut -d. -f 1)
-                                        ;;
-                            esac
-
-                            # Determine the octet to expand and do it
-                            case ${num} in
-                                # The first line expands a class A IP which is incredibly large. Uncomment and goodluck.
-                            #   0 ) declare -a 'a_parsed=( {'"${start}..${end}"'}.{'"0..255"'}.{'"0..255"'}.{'"1..254"'} )' ;;
-                                1 ) declare -a 'a_parsed=( '"${s_temp}"'{'"${start}..${end}"'}.{'"0..255"'}.{'"1..254"'} )' ;;
-                                2 ) declare -a 'a_parsed=( '"${s_temp}"'{'"${start}..${end}"'}.{'"1..254"'} )' ;;
-                                3 ) declare -a 'a_parsed=( '"${s_temp}"'{'"${start}..${end}"'} )' ;;
-                            esac
-
-                            break
-                        else
-
-                            # Otherwise add the values as the IP range prefix
-                            s_temp+="${a_temp[${num}]}."
-
+                        # Incase the IFS parsing doesn't work...
+                        if [ "${end}x" == "x" ]; then
+                            start=$(cut -d- -f 1 <<< ${i_data})
+                            end=$(cut -d- -f 2 <<< ${i_data})
                         fi
 
-                    done
-                    ;;
+                        # Iterate, building the port array
+                        for ((port=start; port <= end; port++)); do
+                            a_parsed+=( ${port} )
+                        done
+                        ;;
 
-           file:* ) # Process Host File line separated
-                    a_parsed=()
-                    for h in $(cat ${i_data}); do
-                        a_parsed+=( ${h} )
-                    done
-                    ;;
+              ips:*[0-9]-[0-9]* ) # IP Range: 192.168.2.1-255
+                        unset a_temp
+                        IFS=. read -ra a_temp <<< ${input}
 
-              *,* ) #        Port: Comma Separated: n,n,n,n
-                    # IP/Hostname: Comma Separated: 192.168.1.10,192.168.2.12
-                    IFS=, read -ra a_parsed <<< ${i_data}
+                        # Incase the IFS parsing doesn't work...
+                        if [ "${a_temp[2]}x" == "x" ]; then
+                            for i in {1..4..1}; do a_temp+=( $(cut -d. -f ${i} <<< ${input}) ); done
+                            parse_method="alt"
+                        fi
 
-                    # Incase the IFS Pasing doesn't work...
-                    if [ "${a_parsed[2]}x" == "x" ]; then
-                        a_temp=()
-                        for e in ${a_parsed[0]}; do a_temp+=( ${e} ); done
-                        a_parsed=( ${a_temp[@]} )
-                    fi
-                    ;;
+                        # Iterate through the elements of IPv4 stored in ${a_temp[@]}
+                        for num in {0..3}; do
 
-                * ) #        Port: Single Entry: n
-                    # IP/Hostname: Single Entry: 192.168.1.10
-                    a_parsed+=( ${i_data} )
-                    ;;
-    esac
+                            # When you find the range, split it, expand it based on position, and store in an array
+                            if [[ "${a_temp[${num}]}" == *[0-9]"-"[0-9]* ]]; then
+                                
+                                # Determine the parsing method (in case IFS isn't working)
+                                case "${parse_method}" in 
+                                    "ifs" ) IFS=- read start end <<< ${a_temp[${num}]}
+                                            ;;
+                                    "alt" ) start=$(cut -d- -f 1 <<< ${i_data} | cut -d. -f $((num+1)))
+                                            end=$(cut -d- -f 2 <<< ${i_data} | cut -d. -f 1)
+                                            ;;
+                                esac
+
+                                # Determine the octet to expand and do it
+                                case ${num} in
+                                    # The first line expands a class A IP which is incredibly large. Uncomment and goodluck.
+                                #   0 ) declare -a 'a_parsed=( {'"${start}..${end}"'}.{'"0..255"'}.{'"0..255"'}.{'"1..254"'} )' ;;
+                                    1 ) declare -a 'a_parsed+=( '"${s_temp}"'{'"${start}..${end}"'}.{'"0..255"'}.{'"1..254"'} )' ;;
+                                    2 ) declare -a 'a_parsed+=( '"${s_temp}"'{'"${start}..${end}"'}.{'"1..254"'} )' ;;
+                                    3 ) declare -a 'a_parsed+=( '"${s_temp}"'{'"${start}..${end}"'} )' ;;
+                                esac
+
+                                break
+                            else
+
+                                # Otherwise add the values as the IP range prefix
+                                s_temp+="${a_temp[${num}]}."
+
+                            fi
+
+                        done
+                        ;;
+
+               file:* ) # Process Host File line separated
+                        a_parsed=()
+                        for h in $(cat ${i_data}); do
+                            a_parsed+=( ${h} )
+                        done
+                        ;;
+
+                    * ) #        Port: Single Entry: n
+                        # IP/Hostname: Single Entry: 192.168.1.10
+                        a_parsed+=( ${input} )
+                        ;;
+        esac
+
+    done
 
     # Return the array
+    export IFS=${ogIFS}
     echo "${a_parsed[@]}"
 }
 
@@ -269,12 +266,10 @@ function determine_ping_host_results() {
     printf "%-33s" ${target_host}
 
     if ${no_ping}; then
-
         # Don't Ping
         printf "%10s\n" "(skip-ping)" 
 
     else
-
         # Ping & Determine the response code and output
         ping_host ${target_host} ${connect_timeout}
         case ${?} in
@@ -290,7 +285,6 @@ function determine_ping_host_results() {
                 fi
                 ;;
         esac
-
     fi
 
     return ${rtrn}

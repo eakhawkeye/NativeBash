@@ -31,7 +31,7 @@ Requirements:
 Your linux kernel needs to be compiled with '/dev/tcp' for this to work (which is a standard setup).
 
 ```
-  Usage: bnscan.sh action (-h <target_hosts>|-f <target_host_file>) -p <target_ports> ..more arguments
+  Usage: bnscan <action> (-h <target_hosts>|-f <target_host_file>) -p <target_ports> ..more arguments
 
 	Actions:         Description:
 	      scan         Host & Port Scanner  | args: (-h|-f) -p [-r -t -b -n]
