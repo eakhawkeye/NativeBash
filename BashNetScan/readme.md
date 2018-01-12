@@ -45,7 +45,7 @@ Your linux kernel needs to be compiled with '/dev/tcp' for this to work (which i
 	      port         Port Check           | args:  -h -p (no ranges accepted)
 
       Arguments:
-	        -h         host/host range (dash or comma)   | -h 192.168.2-3.0
+	        -h         host(s)/ip range (dash or comma)  | -h 192.168.2-3.0
 	        -f         host file line separated          | -f hostlist.txt
 	        -p         port/port range (dash or comma)   | -p 1-1024
 	        -r         protocol tcp (default) or udp     | -r tcp

@@ -83,7 +83,7 @@ function usage()
     echo -e "\t     range         Host Range Expansion | args:  -h"
     echo -e "\t      port         Port Check           | args:  -h -p (no ranges accepted)"
     echo -e "\n      Arguments:"
-    echo -e "\t        -h         host/host range (dash or comma)   | -h 192.168.2-3.0"
+    echo -e "\t        -h         host(s)/ip range (dash or comma)  | -h 192.168.2-3.0"
     echo -e "\t        -f         host file line separated          | -f hostlist.txt"
     echo -e "\t        -p         port/port range (dash or comma)   | -p 1-1024"
     echo -e "\t        -r         protocol tcp (default) or udp     | -r tcp"
