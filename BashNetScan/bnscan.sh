@@ -173,8 +173,8 @@ function input_parser()
 
                         # Incase the IFS parsing doesn't work...
                         if [ "${end}x" == "x" ]; then
-                            start=$(cut -d- -f 1 <<< ${i_data})
-                            end=$(cut -d- -f 2 <<< ${i_data})
+                            start=$(cut -d- -f 1 <<< ${input})
+                            end=$(cut -d- -f 2 <<< ${input})
                         fi
 
                         # Iterate, building the port array
